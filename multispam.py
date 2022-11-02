@@ -1,4 +1,4 @@
-import requests, threading
+import requests, threading, random
 
 spam_count = 0
 
@@ -16,18 +16,28 @@ class MultiSpam():
 
     def ngl_spam(self):
         global spam_count
-        data = {'question':self.random_question()}
-        r = requests.post(self.url, data=data)
         spam_count+=1
+
+        f = open('uheaderz.txt','r').read().splitlines()
+        x = ''.join(random.choices(f))
+        header = {"User-Agent": x}
+        data = {'question':self.random_question()}
+        r = requests.post(self.url, headers=header, data=data)
+        if(r.status_code == 429):
+            while True:
+                r = requests.post(self.url, headers=header, data=data)
+                if(r.status_code == 200):
+                    print('429 is now 200 success!')
+                    break
+                print('retrying 429 response')
+
         print(f'({spam_count})->[{r.status_code}]')
 
 
 if(__name__=="__main__"):
     url = input('Enter target ngl url: ')
     amnt = int(input('Spam amount: '))
-    spam = MultiSpam(url)
     for i in range(amnt):
         print(f'({i})->threads started!')
-        threading.Thread(target=spam.ngl_spam).start()
-
+        threading.Thread(target=MultiSpam(url).ngl_spam).start()
 
