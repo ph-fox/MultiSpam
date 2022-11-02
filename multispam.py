@@ -24,12 +24,13 @@ class MultiSpam():
         data = {'question':self.random_question()}
         r = requests.post(self.url, headers=header, data=data)
         if(r.status_code == 429):
+            print('retrying 429 response')
             while True:
-                r = requests.post(self.url, headers=header, data=data)
+                timeout = r.headers['Retry-after']
+                r = requests.post(self.url, timeout=int(timeout),headers=header, data=data)
                 if(r.status_code == 200):
                     print('429 is now 200 success!')
                     break
-                print('retrying 429 response')
 
         print(f'({spam_count})->[{r.status_code}]')
 
@@ -37,6 +38,7 @@ class MultiSpam():
 if(__name__=="__main__"):
     url = input('Enter target ngl url: ')
     amnt = int(input('Spam amount: '))
+    #amnt = 30
     for i in range(amnt):
         print(f'({i})->threads started!')
         threading.Thread(target=MultiSpam(url).ngl_spam).start()
